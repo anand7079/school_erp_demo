@@ -1,23 +1,21 @@
 # School ERP React frontend
 
-Standalone React + TypeScript + Vite app for the School ERP. The Spring Boot backend remains in the repository root.
+Standalone React + TypeScript + Vite frontend. The Spring Boot backend remains in the repository root and runs independently.
 
 ## Run locally
-
-From this directory:
 
 ```powershell
 npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite (usually `http://localhost:5173`).
+Open the local URL printed by Vite (normally `http://localhost:5173`). The backend must also be running at `http://localhost:8080` with its database available.
 
-## Current UI
+## Backend connection
 
-The app includes Overview, Students, Classes & sections, and Fee status screens. Search and class/section filters work locally. Student registration, class creation, and fee-status updates use in-memory sample state, so a refresh restores the sample dataset. Backend API integration is the next step.
+The API base URL is configured in `.env.local` as `VITE_API_BASE_URL`. The frontend reads school and branch details, paginated students, classes and sections, fee summary, and unpaid students from the Spring API. Creating a class, creating a section, registering a student, and changing fee status send requests to the backend.
 
-The local API base URL is in `.env.local` as `VITE_API_BASE_URL`. It is ready for the API client integration; it is not read by the current prototype UI yet.
+Spring CORS allows `http://localhost:5173` by default. For a separately deployed frontend, set the backend environment variable `CORS_ALLOWED_ORIGINS` to the exact frontend origin (or comma-separated allowed origins), then restart the backend.
 
 ## Production build
 
@@ -25,4 +23,4 @@ The local API base URL is in `.env.local` as `VITE_API_BASE_URL`. It is ready fo
 npm run build
 ```
 
-Vite writes deployable static files to `dist/`. Set `VITE_API_BASE_URL` to the separately deployed backend before building the production frontend.
+Vite writes static deployable files to `dist/`. Set `VITE_API_BASE_URL` to the deployed backend URL before building for production. The current backend security configuration is still development-only and allows unauthenticated requests; add authentication and authorization before exposing real student data.
