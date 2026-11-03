@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +16,12 @@ import java.time.LocalDate;
 public class StudentRequest {
     @NotNull(message = "Branch is required")
     private Long branchId;
+
+    @NotNull(message = "Class is required")
+    private Long classId;
+
+    @NotNull(message = "Section is required")
+    private Long sectionId;
 
     @NotBlank(message = "Admission number is required")
     @Size(max = 50)

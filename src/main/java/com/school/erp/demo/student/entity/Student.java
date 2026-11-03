@@ -2,6 +2,8 @@ package com.school.erp.demo.student.entity;
 
 import com.school.erp.demo.school.entity.Branch;
 import com.school.erp.demo.school.entity.School;
+import com.school.erp.demo.classroom.entity.SchoolClass;
+import com.school.erp.demo.section.entity.Section;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +31,14 @@ public class Student {
     @JoinColumn(name = "branch_id", nullable = false)
     private Branch branch;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private SchoolClass schoolClass;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "section_id")
+    private Section section;
+
     @Column(name = "admission_number", nullable = false, length = 50)
     private String admissionNumber;
 
@@ -49,6 +59,10 @@ public class Student {
 
     @Column(nullable = false)
     private Boolean active = true;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fee_status", nullable = false, length = 10)
+    private FeeStatus feeStatus = FeeStatus.UNPAID;
 
     @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
     private LocalDateTime createdAt;
