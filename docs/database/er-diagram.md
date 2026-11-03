@@ -3,8 +3,12 @@
 ```mermaid
 erDiagram
     SCHOOLS ||--o{ BRANCHES : has
+    BRANCHES ||--o{ CLASSES : offers
+    CLASSES ||--o{ SECTIONS : contains
     SCHOOLS ||--o{ STUDENTS : enrolls
     BRANCHES ||--o{ STUDENTS : registers
+    CLASSES ||--o{ STUDENTS : places
+    SECTIONS ||--o{ STUDENTS : assigns
     USERS ||--o{ USER_ROLES : has
     ROLES ||--o{ USER_ROLES : assigned
     USERS ||--o{ USER_BRANCHES : assigned
@@ -28,10 +32,31 @@ erDiagram
         timestamp created_at
     }
 
+    CLASSES {
+        bigint id PK
+        bigint branch_id FK
+        varchar name
+        varchar code
+        varchar description
+        boolean active
+        timestamp created_at
+    }
+
+    SECTIONS {
+        bigint id PK
+        bigint class_id FK
+        varchar name
+        integer capacity
+        boolean active
+        timestamp created_at
+    }
+
     STUDENTS {
         bigint id PK
         bigint school_id FK
         bigint branch_id FK
+        bigint class_id FK
+        bigint section_id FK
         varchar admission_number UK
         varchar first_name
         varchar last_name
@@ -39,6 +64,7 @@ erDiagram
         varchar email
         varchar mobile
         boolean active
+        varchar fee_status
         timestamp created_at
     }
 
@@ -70,3 +96,4 @@ erDiagram
 ```
 
 Student admission numbers are unique within a school (`school_id`, `admission_number`).
+Student fee status is `PAID` or `UNPAID`; the migration defaults existing and new records to `UNPAID`.

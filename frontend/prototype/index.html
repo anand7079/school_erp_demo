@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="School ERP dashboard design prototype">
+  <title>CampusFlow | School ERP</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#overview" aria-label="CampusFlow home">
+      <span class="brand-mark">C</span><span><strong>CampusFlow</strong><small>SCHOOL ERP</small></span>
+    </a>
+    <div class="school-switcher"><span class="school-avatar">MS</span><span><strong>Mashcod School</strong><small>Main Campus</small></span><span class="chevron">⌄</span></div>
+    <nav class="main-nav" aria-label="Main navigation">
+      <p class="nav-label">WORKSPACE</p>
+      <button class="nav-item active" data-view="overview"><span class="nav-icon">⌂</span>Overview</button>
+      <button class="nav-item" data-view="students"><span class="nav-icon">♙</span>Students <span class="nav-count">100</span></button>
+      <button class="nav-item" data-view="classes"><span class="nav-icon">▤</span>Classes &amp; sections</button>
+      <button class="nav-item" data-view="fees"><span class="nav-icon">₹</span>Fee status <span class="nav-dot"></span></button>
+      <p class="nav-label nav-spaced">ADMINISTRATION</p>
+      <button class="nav-item muted" title="Planned module"><span class="nav-icon">♧</span>Staff <span class="soon">Soon</span></button>
+      <button class="nav-item muted" title="Planned module"><span class="nav-icon">▦</span>Attendance <span class="soon">Soon</span></button>
+    </nav>
+    <div class="sidebar-bottom"><div class="help-card"><span class="help-icon">?</span><div><strong>Need a hand?</strong><small>View the quick guide</small></div><span class="arrow">↗</span></div><div class="profile"><span class="profile-avatar">AD</span><span><strong>School Admin</strong><small>Administrator</small></span><button class="more" aria-label="Profile menu">•••</button></div></div>
+  </aside>
+
+  <main class="main-shell">
+    <header class="topbar"><button id="menuButton" class="mobile-menu" aria-label="Open menu">☰</button><div class="breadcrumbs"><span>Workspace</span><b>/</b><strong id="breadcrumbCurrent">Overview</strong></div><div class="top-actions"><span class="today" id="todayLabel"></span><button class="icon-button" aria-label="Notifications">♧<i></i></button><span class="top-avatar">AD</span></div></header>
+
+    <section class="view active-view" id="overviewView">
+      <div class="page-heading"><div><p class="eyebrow" id="currentDate"></p><h1>Good morning, Admin <span class="wave">✦</span></h1><p class="subheading">Here’s what’s happening at your school today.</p></div><button class="button button-primary" data-go="students"><span>＋</span> Add a student</button></div>
+      <section class="hero-card"><img src="assets/school-campus.jpg" alt="Modern school campus surrounded by greenery"><div class="hero-overlay"></div><div class="hero-copy"><span class="hero-tag"><span class="live-dot"></span> SCHOOL OVERVIEW</span><h2>A great day to make<br>learning happen.</h2><p>Your school at a glance. Keep everything moving, one day at a time.</p><button class="hero-link" data-go="classes">Explore classes <span>→</span></button></div><div class="hero-date"><span>ACADEMIC YEAR</span><strong>2026 – 27</strong></div></section>
+      <div class="section-heading"><div><h2>Today at a glance</h2><p>Key numbers across your school</p></div><span class="updated-label"><span class="status-dot"></span> Live overview</span></div>
+      <div class="stats-grid">
+        <article class="stat-card"><div class="stat-top"><span class="stat-icon icon-violet">♙</span><span class="stat-kicker">ALL ENROLLED</span><span class="stat-menu">•••</span></div><strong class="stat-value">100</strong><div class="stat-bottom"><span class="stat-caption">Total students</span><button class="text-link" data-go="students">View all <span>→</span></button></div><div class="sparkline spark-purple"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-icon icon-green">✓</span><span class="stat-kicker">FEE STATUS</span><span class="stat-menu">•••</span></div><strong class="stat-value" id="paidCountCard">50</strong><div class="stat-bottom"><span class="stat-caption">Fees paid <em class="positive" id="paidPercent">50%</em></span><button class="text-link" data-go="fees">View status <span>→</span></button></div><div class="progress-track"><span class="progress-green" id="paidProgress" style="width:50%"></span></div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-icon icon-amber">◷</span><span class="stat-kicker">ACTION NEEDED</span><span class="stat-menu">•••</span></div><strong class="stat-value" id="unpaidCountCard">50</strong><div class="stat-bottom"><span class="stat-caption">Fees unpaid</span><button class="text-link text-amber" data-go="fees">Follow up <span>→</span></button></div><div class="progress-track"><span class="progress-amber" id="unpaidProgress" style="width:50%"></span></div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-icon icon-blue">▤</span><span class="stat-kicker">LEARNING GROUPS</span><span class="stat-menu">•••</span></div><strong class="stat-value">5 <small>classes</small></strong><div class="stat-bottom"><span class="stat-caption">Across 10 sections</span><button class="text-link" data-go="classes">Explore <span>→</span></button></div><div class="sparkline spark-blue"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+      </div>
+      <div class="dashboard-grid"><section class="panel recent-panel"><div class="panel-heading"><div><h2>Recently added students</h2><p>Your latest student records</p></div><button class="text-link" data-go="students">View students <span>→</span></button></div><div class="table-wrap"><table><thead><tr><th>STUDENT</th><th>CLASS</th><th>ADMISSION NO.</th><th>FEE STATUS</th></tr></thead><tbody id="recentStudents"></tbody></table></div></section>
+      <section class="panel quick-panel"><div class="panel-heading"><div><h2>Quick actions</h2><p>Common tasks, one click away</p></div></div><button class="quick-action" data-go="students"><span class="quick-icon quick-violet">＋</span><span><strong>Register student</strong><small>Add a student record</small></span><b>→</b></button><button class="quick-action" data-go="classes"><span class="quick-icon quick-blue">▤</span><span><strong>Manage classes</strong><small>Review classes &amp; sections</small></span><b>→</b></button><button class="quick-action" data-go="fees"><span class="quick-icon quick-amber">₹</span><span><strong>Check fee status</strong><small>See unpaid student fees</small></span><b>→</b></button><div class="note-card"><span>✦</span><p><strong>Small steps, big impact.</strong><br>Keep student records up to date for a smoother school day.</p></div></section></div>
+      <footer class="footer">© 2026 CampusFlow <span>Built for better school days</span></footer>
+    </section>
+
+    <section class="view" id="studentsView"><div class="page-heading"><div><p class="eyebrow">SCHOOL DIRECTORY</p><h1>Students</h1><p class="subheading">Browse student records and classroom placements.</p></div><button class="button button-primary" id="addStudent"><span>＋</span> Add a student</button></div><section class="panel list-panel"><div class="filter-bar"><label class="search-box"><span>⌕</span><input id="studentSearch" placeholder="Search name or admission number"></label><select id="classFilter" aria-label="Filter by class"><option value="">All classes</option></select><select id="sectionFilter" aria-label="Filter by section"><option value="">All sections</option><option>A</option><option>B</option></select></div><div class="table-wrap"><table><thead><tr><th>STUDENT</th><th>ADMISSION NO.</th><th>CLASS &amp; SECTION</th><th>FEE STATUS</th><th>STATUS</th></tr></thead><tbody id="studentRows"></tbody></table></div><div class="table-foot"><span id="studentCount"></span><span>Prototype data · Connected API planned</span></div></section><footer class="footer">© 2026 CampusFlow <span>Built for better school days</span></footer></section>
+
+    <section class="view" id="classesView"><div class="page-heading"><div><p class="eyebrow">ACADEMIC STRUCTURE</p><h1>Classes &amp; sections</h1><p class="subheading">Organize learners into classes and sections.</p></div><button class="button button-primary" id="addClass"><span>＋</span> Add a class</button></div><div class="class-grid" id="classCards"></div><footer class="footer">© 2026 CampusFlow <span>Built for better school days</span></footer></section>
+
+    <section class="view" id="feesView"><div class="page-heading"><div><p class="eyebrow">PAYMENTS OVERVIEW</p><h1>Fee status</h1><p class="subheading">A clear view of paid and outstanding student fees.</p></div><span class="updated-label"><span class="status-dot"></span> All students</span></div><div class="fee-summary"><article class="fee-card fee-total"><span class="fee-icon">♙</span><small>TOTAL STUDENTS</small><strong id="feesTotal">100</strong><span>Across all classes</span></article><article class="fee-card fee-paid"><span class="fee-icon">✓</span><small>FEES PAID</small><strong id="feesPaid">50</strong><span>Students marked paid</span></article><article class="fee-card fee-unpaid"><span class="fee-icon">◷</span><small>FEES UNPAID</small><strong id="feesUnpaid">50</strong><span>Follow-up may be needed</span></article></div><section class="panel list-panel"><div class="panel-heading fee-table-heading"><div><h2>Students with unpaid fees</h2><p>Review the list and update a student’s fee status</p></div><span class="unpaid-badge" id="unpaidBadge"><i></i> 50 unpaid</span></div><div class="table-wrap"><table><thead><tr><th>STUDENT</th><th>ADMISSION NO.</th><th>CLASS &amp; SECTION</th><th>FEE STATUS</th><th></th></tr></thead><tbody id="unpaidRows"></tbody></table></div><div class="table-foot"><span id="unpaidFoot">Showing unpaid sample records</span><span>Amounts and payment history are not part of this prototype</span></div></section><footer class="footer">© 2026 CampusFlow <span>Built for better school days</span></footer></section>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

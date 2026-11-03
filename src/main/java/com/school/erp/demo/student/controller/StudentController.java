@@ -2,11 +2,14 @@ package com.school.erp.demo.student.controller;
 
 import com.school.erp.demo.student.dto.StudentRequest;
 import com.school.erp.demo.student.dto.StudentResponse;
+import com.school.erp.demo.student.dto.StudentFeeSummary;
+import com.school.erp.demo.student.entity.FeeStatus;
 import com.school.erp.demo.student.service.StudentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,4 +41,15 @@ public class StudentController {
     public StudentResponse setActive(@PathVariable Long id, @RequestParam boolean active) {
         return studentService.setActive(id, active);
     }
+
+    @PatchMapping("/{id}/fee-status")
+    public StudentResponse setFeeStatus(@PathVariable Long id, @RequestParam FeeStatus status) {
+        return studentService.setFeeStatus(id, status);
+    }
+
+    @GetMapping("/fees/summary")
+    public StudentFeeSummary feeSummary() { return studentService.feeSummary(); }
+
+    @GetMapping("/fees/unpaid")
+    public List<StudentResponse> unpaidStudents() { return studentService.unpaidStudents(); }
 }
