@@ -1,8 +1,10 @@
 
 package com.school.erp.demo.school.service;
 
+import com.school.erp.demo.school.dto.BranchResponse;
 import com.school.erp.demo.school.entity.Branch;
 import com.school.erp.demo.school.entity.School;
+import com.school.erp.demo.school.mapper.BranchMapper;
 import com.school.erp.demo.school.repository.BranchRepository;
 import com.school.erp.demo.school.repository.SchoolRepository;
 
@@ -19,26 +21,37 @@ public class BranchService {
 
     private final BranchRepository branchRepository;
     private final SchoolRepository schoolRepository;
+    private final BranchMapper branchMapper;
 
     @Transactional
-    public Branch createBranch(
-            Long schoolId,
+    public BranchResponse createBranch(
             String name,
             String code,
             String address) {
 
-        // 1. Check whether the school exists
-        School school = schoolRepository.findById(schoolId)
+        // Find the registered school
+        School school = schoolRepository.findAll()
+                .stream()
+                .findFirst()
                 .orElseThrow(() ->
-                        new IllegalArgumentException("School not found"));
+                        new IllegalStateException(
+                                "Please register the school first"));
 
-        // 2. Check whether the branch code already exists
+        Long schoolId = school.getId();
+
+        // Check for duplicate branch code
         if (branchRepository.existsBySchool_IdAndCode(schoolId, code)) {
             throw new IllegalArgumentException(
                     "Branch code already exists");
         }
 
-        // 3. Create the branch
+        // Check for duplicate branch name
+        if (branchRepository.existsBySchool_IdAndName(schoolId, name)) {
+            throw new IllegalArgumentException(
+                    "Branch name already exists");
+        }
+
+        // Create Branch entity
         Branch branch = new Branch();
 
         branch.setSchool(school);
@@ -47,18 +60,28 @@ public class BranchService {
         branch.setAddress(address);
         branch.setActive(true);
 
-        // 4. Save and return the branch
-        return branchRepository.save(branch);
+        // Save branch
+        Branch savedBranch = branchRepository.save(branch);
+
+        // Convert entity into DTO
+        return branchMapper.toResponse(savedBranch);
     }
 
     @Transactional(readOnly = true)
-    public List<Branch> getBranchesBySchool(Long schoolId) {
+    public List<BranchResponse> getBranches() {
 
-        // Check whether the school exists
-        if (!schoolRepository.existsById(schoolId)) {
-            throw new IllegalArgumentException("School not found");
-        }
+        // Find the registered school
+        School school = schoolRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalStateException(
+                                "School has not been registered"));
 
-        return branchRepository.findBySchool_Id(schoolId);
+        // Fetch and convert branches into DTOs
+        return branchRepository.findBySchool_Id(school.getId())
+                .stream()
+                .map(branchMapper::toResponse)
+                .toList();
     }
 }

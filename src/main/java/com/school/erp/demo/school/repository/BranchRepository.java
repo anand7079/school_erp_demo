@@ -18,4 +18,6 @@ public interface BranchRepository extends JpaRepository<Branch, Long> {
     List<Branch> findBySchool_IdAndActiveTrue(Long schoolId);
 
     boolean existsBySchool_IdAndCode(Long schoolId, String code);
+
+    boolean existsBySchool_IdAndName(Long schoolId, String name);
 }
