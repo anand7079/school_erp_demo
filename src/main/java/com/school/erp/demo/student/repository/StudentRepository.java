@@ -15,6 +15,8 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findByFeeStatusOrderByFirstNameAscLastNameAsc(FeeStatus feeStatus);
     boolean existsBySchoolClassId(Long classId);
     boolean existsBySectionId(Long sectionId);
+    List<Student> findBySchoolClassIdOrderByFirstNameAscLastNameAsc(Long classId);
+    List<Student> findBySectionIdOrderByFirstNameAscLastNameAsc(Long sectionId);
     Page<Student> findBySchoolIdAndFirstNameContainingIgnoreCaseOrSchoolIdAndLastNameContainingIgnoreCase(
             Long schoolId, String firstName, Long schoolIdAgain, String lastName, Pageable pageable);
 }

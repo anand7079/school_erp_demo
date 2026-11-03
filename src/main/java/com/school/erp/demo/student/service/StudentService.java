@@ -102,6 +102,28 @@ public class StudentService {
                 .stream().map(studentMapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<StudentResponse> studentsInClass(Long classId) {
+        if (!classRepository.existsById(classId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found");
+        }
+        return studentRepository.findBySchoolClassIdOrderByFirstNameAscLastNameAsc(classId)
+                .stream().map(studentMapper::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<StudentResponse> studentsInSection(Long classId, Long sectionId) {
+        SchoolClass schoolClass = classRepository.findById(classId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Class not found"));
+        Section section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Section not found"));
+        if (!section.getSchoolClass().getId().equals(schoolClass.getId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Section does not belong to this class");
+        }
+        return studentRepository.findBySectionIdOrderByFirstNameAscLastNameAsc(sectionId)
+                .stream().map(studentMapper::toResponse).toList();
+    }
+
     private void apply(Student student, StudentRequest request, Branch branch, Placement placement) {
         student.setSchool(branch.getSchool());
         student.setBranch(branch);
