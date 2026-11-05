@@ -564,6 +564,18 @@ Returns the user associated with the supplied ID.
 
 Follow these steps to run the application locally.
 
+### Configure a hosted PostgreSQL database
+
+The datasource accepts environment variables, while retaining the local PostgreSQL defaults above for development. For Render + Neon, add these values under the Render service's **Environment** settings:
+
+| Variable | Value |
+|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://<Neon-direct-host>:5432/school_erp_demo?sslmode=require` |
+| `SPRING_DATASOURCE_USERNAME` | `neondb_owner` |
+| `SPRING_DATASOURCE_PASSWORD` | The rotated Neon role password (enter only in Render's secret environment field) |
+
+Use the **direct** connection string from Neon for this Spring Boot service because Flyway runs schema migrations at startup. Convert its `postgresql://` prefix to `jdbc:postgresql://`, and retain `sslmode=require`. Do not commit credentials or place them in the React frontend. On the first backend start, Flyway applies the existing migrations to the empty Neon database.
+
 ### Prerequisites
 
 Install the following:
