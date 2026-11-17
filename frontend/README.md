@@ -9,6 +9,7 @@ The React + TypeScript frontend is in [`app/`](app/). The static visual referenc
 
    ```powershell
    Set-Location .\frontend\app
+   npm install
    npm run dev
    ```
 

@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import campus from './assets/school-campus.jpg'
 import {
-  changeFeeStatus, createClass, createSection, createStudent, getAllStudents,
-  getBranches, getClasses, getFeeSummary, getSchool, getSections, getUnpaidStudents,
+  changeFeeStatus, createAnnouncement, createClass, createSection, createStudent, getAllStudents,
+  getAnnouncements, getBranches, getClasses, getFeeSummary, getSchool, getSections, getUnpaidStudents,
 } from './api'
-import type { Branch, FeeStatus, FeeSummary, School, SchoolClass, Section, Student } from './api'
+import type { Announcement, Branch, FeeStatus, FeeSummary, School, SchoolClass, Section, Student } from './api'
 import './App.css'
 
-type View = 'overview' | 'students' | 'classes' | 'fees'
+type View = 'overview' | 'students' | 'classes' | 'fees' | 'announcements'
 type ClassWithSections = SchoolClass & { sections: Section[] }
 
 const navItems: { id: View; icon: string; label: string }[] = [
@@ -16,6 +16,7 @@ const navItems: { id: View; icon: string; label: string }[] = [
   { id: 'students', icon: '♙', label: 'Students' },
   { id: 'classes', icon: '▤', label: 'Classes & sections' },
   { id: 'fees', icon: '₹', label: 'Fee status' },
+  { id: 'announcements', icon: '◉', label: 'Announcements' },
 ]
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
   const [classes, setClasses] = useState<ClassWithSections[]>([])
   const [students, setStudents] = useState<Student[]>([])
   const [unpaidStudents, setUnpaidStudents] = useState<Student[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [feeSummary, setFeeSummary] = useState<FeeSummary>({ paidCount: 0, unpaidCount: 0, activeStudentCount: 0 })
   const [view, setView] = useState<View>('overview')
   const [query, setQuery] = useState('')
@@ -49,15 +51,15 @@ function App() {
     const text = `${student.firstName} ${student.lastName ?? ''} ${student.admissionNumber}`.toLowerCase()
     return (!query || text.includes(query.toLowerCase()))
       && (!classFilter || String(student.classId ?? '') === classFilter)
-      && (!sectionFilter || student.sectionName === sectionFilter)
+      && (!sectionFilter || String(student.sectionId ?? '') === sectionFilter)
   }), [students, query, classFilter, sectionFilter])
 
   async function loadWorkspace(showLoading = true) {
     if (showLoading) setLoading(true)
     setError('')
     try {
-      const [schoolData, branchData, studentData, summaryData, unpaidData] = await Promise.all([
-        getSchool(), getBranches(), getAllStudents(), getFeeSummary(), getUnpaidStudents(),
+      const [schoolData, branchData, studentData, summaryData, unpaidData, announcementData] = await Promise.all([
+        getSchool(), getBranches(), getAllStudents(), getFeeSummary(), getUnpaidStudents(), getAnnouncements(),
       ])
       const branchClasses = (await Promise.all(branchData.map(async (item) => {
         const rows = await getClasses(item.id)
@@ -71,6 +73,7 @@ function App() {
       setStudents(studentData)
       setFeeSummary(summaryData)
       setUnpaidStudents(unpaidData)
+      setAnnouncements(announcementData.content)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Unable to load data from the backend.')
     } finally {
@@ -88,6 +91,13 @@ function App() {
   function navigate(nextView: View) {
     setView(nextView)
     setSidebarOpen(false)
+  }
+
+  function showClassStudents(classId: number, sectionId?: number) {
+    setQuery('')
+    setClassFilter(String(classId))
+    setSectionFilter(sectionId === undefined ? '' : String(sectionId))
+    navigate('students')
   }
 
   async function markFeeStatus(student: Student, status: FeeStatus) {
@@ -126,6 +136,25 @@ function App() {
       notify('Student created successfully.')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not create student.')
+    } finally { setSaving(false) }
+  }
+
+  async function onCreateAnnouncement(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = event.currentTarget
+    const data = new FormData(form)
+    const text = String(data.get('announcement')).trim()
+    if (!text) return
+    setSaving(true)
+    setError('')
+    try {
+      await createAnnouncement(text)
+      const result = await getAnnouncements()
+      setAnnouncements(result.content)
+      form.reset()
+      notify('Announcement published.')
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not publish announcement.')
     } finally { setSaving(false) }
   }
 
@@ -184,11 +213,13 @@ function App() {
         <div className="dashboard-grid"><section className="panel recent-panel"><div className="panel-heading"><div><h2>Student records</h2><p>Recently returned by the student API</p></div><button className="text-link" onClick={() => navigate('students')}>View students <span>→</span></button></div><div className="table-wrap"><table><thead><tr><th>STUDENT</th><th>CLASS</th><th>ADMISSION NO.</th><th>FEE STATUS</th></tr></thead><tbody>{students.slice(0, 5).map((student, index) => <tr key={student.id}><td><Person student={student} index={index} /></td><td>{student.className ?? '—'}{student.sectionName ? ` · Section ${student.sectionName}` : ''}</td><td>{student.admissionNumber}</td><td><FeePill status={student.feeStatus} /></td></tr>)}</tbody></table>{!students.length && <EmptyMessage loading={loading} message="No students found. Add your first student to get started." />}</div></section><section className="panel quick-panel"><div className="panel-heading"><div><h2>Quick actions</h2><p>Common tasks, one click away</p></div></div><QuickAction icon="＋" tone="quick-violet" title="Register student" subtitle="Add a student record" onClick={() => { setFormClassId(String(currentClasses.find((item) => item.active)?.id ?? '')); setShowStudentForm(true) }} /><QuickAction icon="▤" tone="quick-blue" title="Manage classes" subtitle="Review classes & sections" onClick={() => navigate('classes')} /><QuickAction icon="₹" tone="quick-amber" title="Check fee status" subtitle="See unpaid student fees" onClick={() => navigate('fees')} /><div className="note-card"><span>✦</span><p><strong>Live school data.</strong><br />Changes are saved to the connected backend.</p></div></section></div><Footer />
       </section>}
 
-      {view === 'students' && <section className="view active-view"><div className="page-heading"><div><p className="eyebrow">SCHOOL DIRECTORY</p><h1>Students</h1><p className="subheading">Browse student records and classroom placements.</p></div><button className="button button-primary" disabled={loading || !branch} onClick={() => { setFormClassId(String(currentClasses.find((item) => item.active)?.id ?? '')); setShowStudentForm(true) }}><span>＋</span> Add a student</button></div><section className="panel list-panel"><div className="filter-bar"><label className="search-box"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name or admission number" /></label><select value={classFilter} onChange={(event) => setClassFilter(event.target.value)} aria-label="Filter by class"><option value="">All classes</option>{classes.map((item) => <option key={item.id} value={String(item.id)}>{item.name}</option>)}</select><select value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} aria-label="Filter by section"><option value="">All sections</option>{Array.from(new Set(classes.flatMap((item) => item.sections.map((section) => section.name)))).map((name) => <option key={name} value={name}>Section {name}</option>)}</select></div><div className="table-wrap"><table><thead><tr><th>STUDENT</th><th>ADMISSION NO.</th><th>CLASS &amp; SECTION</th><th>FEE STATUS</th><th>STATUS</th></tr></thead><tbody>{filteredStudents.length ? filteredStudents.map((student, index) => <tr key={student.id}><td><Person student={student} index={index} /></td><td>{student.admissionNumber}</td><td>{student.className ?? '—'}{student.sectionName ? ` · Section ${student.sectionName}` : ''}</td><td><FeePill status={student.feeStatus} /></td><td><span className="status-pill active-pill">{student.active ? 'Active' : 'Inactive'}</span></td></tr>) : <tr><td className="empty-state" colSpan={5}>{loading ? 'Loading students…' : 'No students match these filters.'}</td></tr>}</tbody></table></div><div className="table-foot"><span>Showing {filteredStudents.length} of {students.length} students</span><span>Loaded from the student API</span></div></section><Footer /></section>}
+      {view === 'students' && <section className="view active-view"><div className="page-heading"><div><p className="eyebrow">SCHOOL DIRECTORY</p><h1>Students</h1><p className="subheading">Browse student records and classroom placements.</p></div><button className="button button-primary" disabled={loading || !branch} onClick={() => { setFormClassId(String(currentClasses.find((item) => item.active)?.id ?? '')); setShowStudentForm(true) }}><span>＋</span> Add a student</button></div><section className="panel list-panel"><div className="filter-bar"><label className="search-box"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name or admission number" /></label><select value={classFilter} onChange={(event) => { setClassFilter(event.target.value); setSectionFilter('') }} aria-label="Filter by class"><option value="">All classes</option>{classes.map((item) => <option key={item.id} value={String(item.id)}>{item.name}</option>)}</select><select value={sectionFilter} onChange={(event) => setSectionFilter(event.target.value)} aria-label="Filter by section"><option value="">All sections</option>{classes.filter((item) => !classFilter || String(item.id) === classFilter).flatMap((item) => item.sections.map((section) => <option key={section.id} value={String(section.id)}>{item.name} · Section {section.name}</option>))}</select></div><div className="table-wrap"><table><thead><tr><th>STUDENT</th><th>ADMISSION NO.</th><th>CLASS &amp; SECTION</th><th>FEE STATUS</th><th>STATUS</th></tr></thead><tbody>{filteredStudents.length ? filteredStudents.map((student, index) => <tr key={student.id}><td><Person student={student} index={index} /></td><td>{student.admissionNumber}</td><td>{student.className ?? '—'}{student.sectionName ? ` · Section ${student.sectionName}` : ''}</td><td><FeePill status={student.feeStatus} /></td><td><span className="status-pill active-pill">{student.active ? 'Active' : 'Inactive'}</span></td></tr>) : <tr><td className="empty-state" colSpan={5}>{loading ? 'Loading students…' : 'No students match these filters.'}</td></tr>}</tbody></table></div><div className="table-foot"><span>Showing {filteredStudents.length} of {students.length} students</span><span>Loaded from the student API</span></div></section><Footer /></section>}
 
-      {view === 'classes' && <section className="view active-view"><div className="page-heading"><div><p className="eyebrow">ACADEMIC STRUCTURE</p><h1>Classes &amp; sections</h1><p className="subheading">{branch?.name ?? 'Select a branch'} · Classes and sections from the backend</p></div><button className="button button-primary" disabled={saving || !branch} onClick={() => void onCreateClass()}><span>＋</span> Add a class</button></div><div className="class-grid">{currentClasses.map((item) => { const classStudents = students.filter((student) => student.classId === item.id); return <article className="class-card" key={item.id}><div className="class-card-head"><span className="class-symbol">▤</span><span className="class-number">{item.code || `CLASS ${String(item.id).padStart(2, '0')}`}</span></div><h3>{item.name}</h3><p>{item.branchName} · {item.active ? 'Active' : 'Inactive'}</p><div className="class-metrics"><span><strong>{classStudents.length}</strong><small>Students</small></span><span><strong>{item.sections.length}</strong><small>Sections</small></span></div>{item.sections.map((section) => <div className="section-row" key={section.id}><span>Section {section.name}{!section.active && ' · Inactive'}</span><b>{classStudents.filter((student) => student.sectionId === section.id).length} students</b></div>)}<button className="text-link section-add" disabled={saving || !item.active} onClick={() => void onCreateSection(item)}>＋ Add a section</button></article>})}{!currentClasses.length && <div className="empty-panel">{loading ? 'Loading classes…' : 'No classes for this branch yet. Use “Add a class” to create one.'}</div>}</div><Footer /></section>}
+      {view === 'classes' && <section className="view active-view"><div className="page-heading"><div><p className="eyebrow">ACADEMIC STRUCTURE</p><h1>Classes &amp; sections</h1><p className="subheading">{branch?.name ?? 'Select a branch'} · Classes and sections from the backend</p></div><button className="button button-primary" disabled={saving || !branch} onClick={() => void onCreateClass()}><span>＋</span> Add a class</button></div><div className="class-grid">{currentClasses.map((item) => { const classStudents = students.filter((student) => student.classId === item.id); return <article className="class-card" key={item.id}><div className="class-card-head"><span className="class-symbol">▤</span><span className="class-number">{item.code || `CLASS ${String(item.id).padStart(2, '0')}`}</span></div><h3><button className="class-name-link" onClick={() => showClassStudents(item.id)}>{item.name}</button></h3><p>{item.branchName} · {item.active ? 'Active' : 'Inactive'}</p><div className="class-metrics"><span><strong>{classStudents.length}</strong><small>Students</small></span><span><strong>{item.sections.length}</strong><small>Sections</small></span></div>{item.sections.map((section) => <div className="section-row" key={section.id}><button className="section-name-link" onClick={() => showClassStudents(item.id, section.id)}>Section {section.name}{!section.active && ' · Inactive'}</button><b>{classStudents.filter((student) => student.sectionId === section.id).length} students</b></div>)}<button className="text-link section-add" disabled={saving || !item.active} onClick={() => void onCreateSection(item)}>＋ Add a section</button></article>})}{!currentClasses.length && <div className="empty-panel">{loading ? 'Loading classes…' : 'No classes for this branch yet. Use “Add a class” to create one.'}</div>}</div><Footer /></section>}
 
       {view === 'fees' && <section className="view active-view"><div className="page-heading"><div><p className="eyebrow">PAYMENTS OVERVIEW</p><h1>Fee status</h1><p className="subheading">A clear view of paid and outstanding student fees.</p></div><span className="updated-label"><span className="status-dot" /> All students</span></div><div className="fee-summary"><FeeSummaryCard icon="♙" tone="fee-total" label="TOTAL STUDENTS" value={feeSummary.activeStudentCount} detail="Active students" /><FeeSummaryCard icon="✓" tone="fee-paid" label="FEES PAID" value={paidCount} detail="Students marked paid" /><FeeSummaryCard icon="◷" tone="fee-unpaid" label="FEES UNPAID" value={unpaidCount} detail="Follow-up may be needed" /></div><section className="panel list-panel"><div className="panel-heading fee-table-heading"><div><h2>Students with unpaid fees</h2><p>Update fee status in the school database</p></div><span className="unpaid-badge"><i /> {unpaidStudents.length} unpaid</span></div><div className="table-wrap"><table><thead><tr><th>STUDENT</th><th>ADMISSION NO.</th><th>CLASS &amp; SECTION</th><th>FEE STATUS</th><th /></tr></thead><tbody>{unpaidStudents.length ? unpaidStudents.map((student, index) => <tr key={student.id}><td><Person student={student} index={index} /></td><td>{student.admissionNumber}</td><td>{student.className ?? '—'}{student.sectionName ? ` · Section ${student.sectionName}` : ''}</td><td><FeePill status={student.feeStatus} /></td><td><button className="mark-paid" disabled={saving} onClick={() => void markFeeStatus(student, 'PAID')}>Mark paid</button></td></tr>) : <tr><td className="empty-state" colSpan={5}>{loading ? 'Loading fee data…' : 'No unpaid students found.'}</td></tr>}</tbody></table></div><div className="table-foot"><span>Showing {unpaidStudents.length} unpaid students</span><span>Fee status is a simple paid/unpaid flag</span></div></section><Footer /></section>}
+
+      {view === 'announcements' && <section className="view active-view"><div className="page-heading"><div><p className="eyebrow">SCHOOL COMMUNICATION</p><h1>Announcements</h1><p className="subheading">Share important updates with your school community.</p></div></div><section className="panel announcement-compose"><div className="panel-heading"><div><h2>Post an announcement</h2><p>New posts appear at the top of the announcement list.</p></div></div><form onSubmit={(event) => void onCreateAnnouncement(event)}><label htmlFor="announcementText">Announcement</label><textarea id="announcementText" name="announcement" maxLength={2000} required placeholder="Write an update for your school…" /><div className="announcement-form-footer"><small>Up to 2,000 characters</small><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Publishing…' : 'Publish announcement'}</button></div></form></section><section className="announcement-list"><div className="panel-heading"><div><h2>Recent announcements</h2><p>{announcements.length} shown</p></div><button className="text-link" onClick={() => void loadWorkspace(false)}>Refresh</button></div>{announcements.length ? announcements.map((item) => <article className="panel announcement-card" key={item.id}><span className="announcement-icon">◉</span><div><p>{item.text}</p><small>{item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Just published'}</small></div></article>) : <div className="empty-panel">{loading ? 'Loading announcements…' : 'No announcements yet. Post the first update above.'}</div>}</section><Footer /></section>}
     </main>
 
     {showStudentForm && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowStudentForm(false) }}><section className="student-modal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle"><div className="modal-heading"><div><p className="eyebrow">STUDENT RECORD</p><h2 id="studentModalTitle">Register a student</h2><p className="subheading">Saved to {school?.name ?? 'your school'} in the backend.</p></div><button className="modal-close" onClick={() => setShowStudentForm(false)} aria-label="Close">×</button></div><form onSubmit={(event) => void onCreateStudent(event)}><div className="form-grid"><label>First name<input name="firstName" required maxLength={100} /></label><label>Last name<input name="lastName" maxLength={100} /></label><label>Admission number<input name="admissionNumber" required maxLength={50} /></label><label>Date of birth<input name="dateOfBirth" type="date" /></label><label>Email<input name="email" type="email" maxLength={150} /></label><label>Mobile<input name="mobile" maxLength={20} /></label><label>Class<select value={formClassId} onChange={(event) => setFormClassId(event.target.value)} required><option value="">Select class</option>{currentClasses.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label>Section<select name="sectionId" required disabled={!selectedFormSections.length}><option value="">Select section</option>{selectedFormSections.map((item) => <option key={item.id} value={item.id}>Section {item.name}</option>)}</select></label></div><p className="form-note">New students start with fee status Unpaid.</p><div className="modal-actions"><button type="button" className="button button-secondary" onClick={() => setShowStudentForm(false)}>Cancel</button><button type="submit" className="button button-primary" disabled={saving || !selectedFormSections.length}>{saving ? 'Saving…' : 'Save student'}</button></div></form></section></div>}
