@@ -2,7 +2,7 @@
 
 A backend application for managing school operations, including school registration, branch management, user management, role assignments, and student administration.
 
-Built using **Java 21, Spring Boot, Spring Data JPA, Hibernate, PostgreSQL, and Flyway**.
+Built using **Java 25, Spring Boot, Spring Data JPA, Hibernate, PostgreSQL 16, and Flyway**.
 
 The project follows a layered architecture with a focus on maintainability, scalability, secure data handling, and RESTful API development.
 
