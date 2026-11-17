@@ -37,6 +37,8 @@ Do not add a trailing slash or a path to this CORS value.
 2. Open the School ERP Neon project and select the `school_erp_demo` database.
 3. Use Neon's Connect panel to view its connection settings. For the Spring Boot service, use the direct (unpooled) connection where available; the app runs Flyway migrations at startup.
 4. Keep the Neon username, password, and connection string private. The password is entered in Render, not in Git or Vercel.
+5. jdbc:postgresql://ep-rough-credit-aosnqd10-pooler.c-2.ap-southeast-1.aws.neon.tech:5432/school_erp_demo?sslmode=require&channelBinding=require
+6. password:- npg_6brNKpjQsCw0
 
 ### Render backend
 
