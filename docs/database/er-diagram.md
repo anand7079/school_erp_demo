@@ -88,10 +88,10 @@ erDiagram
         bigint role_id PK, FK
     }
 
-    USER_BRANCHES {
-        bigint user_id PK, FK
-        bigint branch_id PK, FK
-        timestamp assigned_at
+    ANNOUNCEMENTS {
+        bigint id PK
+        varchar text
+        timestamp created_at
     }
 ```
 
