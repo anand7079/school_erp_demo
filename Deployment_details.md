@@ -39,6 +39,7 @@ Do not add a trailing slash or a path to this CORS value.
 4. Keep the Neon username, password, and connection string private. The password is entered in Render, not in Git or Vercel.
 5. jdbc:postgresql://ep-rough-credit-aosnqd10-pooler.c-2.ap-southeast-1.aws.neon.tech:5432/school_erp_demo?sslmode=require&channelBinding=require
 6. password:- npg_6brNKpjQsCw0
+7. username - neondb_owner
 
 ### Render backend
 
