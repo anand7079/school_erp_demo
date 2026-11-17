@@ -11,6 +11,7 @@ export type Student = {
   createdAt: string | null
 }
 export type FeeSummary = { paidCount: number; unpaidCount: number; activeStudentCount: number }
+export type PageResponse<T> = { content: T[]; number: number; size: number; totalElements: number; totalPages: number }
 export type Announcement = { id: number; text: string; createdAt: string | null }
 export type StudentCreate = { branchId: number; classId: number; sectionId: number; admissionNumber: string; firstName: string; lastName?: string; dateOfBirth?: string; email?: string; mobile?: string }
 
@@ -78,5 +79,8 @@ export function createSection(classId: number, name: string, capacity?: number) 
   return api.post<Section>('/sections', { classId, name, capacity: capacity || null })
 }
 export function createStudent(body: StudentCreate) { return api.post<Student>('/students', body) }
+export function changeFeeStatus(studentId: number, status: FeeStatus) {
+  return api.patch<Student>(`/students/${studentId}/fee-status?status=${status}`)
+}
 export function getAnnouncements(page = 0, size = 20) { return api.get<PageResponse<Announcement>>(`/announcements?page=${page}&size=${size}`) }
 export function createAnnouncement(text: string) { return api.post<Announcement>('/announcements', { text }) }
